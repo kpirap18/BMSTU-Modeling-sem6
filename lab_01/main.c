@@ -109,7 +109,7 @@ int main()
 
     float x_start = 0;
     float x_end = 2;
-    float x_step = 1e-4;
+    float x_step = 1e-5;
 
     float k = x_start;
     for (int i = 0; k < x_end + x_step; i++)
@@ -119,14 +119,14 @@ int main()
         k = k + x_step;
     }
 
-    for (int i = 0; i < N; i++)
-    {
-        p1[i] = pikar1(x[i]);
-        p2[i] = pikar2(x[i]);
-        p3[i] = pikar3(x[i]);
-        p4[i] = pikar4(x[i]);
-        p5[i] = pikar5(x[i]);
-    }
+    // for (int i = 0; i < N; i++)
+    // {
+    //     p1[i] = pikar1(x[i]);
+    //     p2[i] = pikar2(x[i]);
+    //     p3[i] = pikar3(x[i]);
+    //     p4[i] = pikar4(x[i]);
+    //     p5[i] = pikar5(x[i]);
+    // }
 
     yavnii(yab, x, N, x_step);
     neyavnii(neyab, x, N, x_step);

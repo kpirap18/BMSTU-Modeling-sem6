@@ -26,8 +26,8 @@ import matplotlib.pyplot as plt
 
 MIN_X = -2
 MAX_X = 2
-STEP = 1e-4
-
+STEP = 1e-2
+RES_WHAT = 1
     
 def f(x, y):
 	return x * x + y * y
@@ -69,29 +69,34 @@ def fp5(x):
             pow(x, 63) / 12072933807377563850625.0 / 63
 
 
-def Picar(x_max, h, func):
+def Picar(x_arr, h, func):
 	result = list()
-	x, y = 0, 0
 
-	k = 0
-	while x < x_max +h:
-		# if (abs(x - k) < 1e-4):
-		result.append(y)
-			# k = k + 0.05
-		x += h
+	for x in x_arr:
 		y = func(x)
+		result.append(y)
 	
 	return result
-
 
 def Euler(x_max, h):
 	result = list()
 	x, y = 0, 0 	# Начальное условие.
 	
 	k = 0
-	while x < x_max +h:
+	while x < x_max + h:
 		result.append(y)
-		# y[i] = y[i - 1] + step * F(x[i - 1], y[i -1]);
+		y = y + h * f(x, y)
+		x += h
+
+	return result
+
+def Euler_minus(x_min, h):
+	h = -h
+	result = list()
+	x, y = 0, 0 	# Начальное условие.
+	
+	while x > x_min + h:
+		result.append(y)
 		y = y + h * f(x, y)
 		x += h
 
@@ -101,32 +106,54 @@ def Euler2(x_max, h): # НЕявный
 	result = list()
 	x, y = 0, 0 	# Начальное условие.
 	
-	k = 0
 	flag = 0
-	while x < x_max +h:
+	while x < x_max + h:
+		x += h
 		if flag:
 			result.append(0)
 		else:
 			result.append(y)
-			x += h
 			if ((1.0 / 4.0 / h / h - y / h - x * x) < 0):
 				flag = 1
 			else:
 				y = 1.0 / 2.0 / h - sqrt(1.0 / 4.0 / h / h - y / h - x * x)
+
+
+	return result
+	
+# http://www.mathprofi.ru/metody_eilera_i_runge_kutty.html
+def Euler_best(x_max, h): # усовершенсвованный метод Эйлера 
+	result = list()
+	x, y = 0, 0 	# Начальное условие.
+	
+	while x < x_max + h:
+		result.append(y)
+		y = y + h * f(x + h / 2, y + h / 2 * f(x, y))
+		x += h
 
 	return result
 
 
 def Runge2(x_max, h):
 	result = list()
-	coeff = h / 2
+	alh = 0.5
+	x, y = 0, 0
+	
+	while x < x_max + h:
+		result.append(y)
+		y = y + h * ((1 - alh) * f(x, y) + alh * f(x + h / 2 / alh, y + h / 2 / alh * f(x, y)))
+		x += h
+	
+	return result
+
+def Runge2_minus(x_min, h):
+	h = -h
+	result = list()
 	alh = 1
 	x, y = 0, 0
 	
-	while x < x_max +h:
+	while x > x_min + h:
 		result.append(y)
-		# y[i] = y[i - 1] + step * F(x[i - 1] + coeff, y[i - 1] + coeff * F(x[i - 1], y[i -1]));
-		#y = y + h * f(x + coeff, y + coeff * f(x, y))
 		y = y + h * ((1 - alh) * f(x, y) + alh * f(x + h / 2 / alh, y + h / 2 / alh * f(x, y)))
 		x += h
 	
@@ -134,7 +161,6 @@ def Runge2(x_max, h):
 
 def Runge4(x_max, h):
 	result = list()
-	
 	x, y = 0, 0
 	
 	while x < x_max +h:
@@ -143,41 +169,61 @@ def Runge4(x_max, h):
 		k2 = h * f(x + h / 2, y + k1 / 2)
 		k3 = h * f(x + h / 2, y + k2 / 2)
 		k4 = h * f(x + h, y + k3)
-		# y[i] = y[i - 1] + step * F(x[i - 1] + coeff, y[i - 1] + coeff * F(x[i - 1], y[i -1]));
-		#y = y + h * f(x + coeff, y + coeff * f(x, y))
 		y = y + (k1 + 2 * k2 + 2 * k3 + k4) / 6
 		x += h
 	
 	return result
 
-
-
 def x_range(x_max, h):
 	result = list()
 	x = 0
 	k = 0
-	while x < x_max +h:
-		# if (abs(x - k) < 1e-4):
+	while x < x_max + h:
 		result.append(x)
-			# k = k + 0.05
+		x += h
+	return result
+
+def x_range_minus(x_min, h):
+	h = -h
+	result = list()
+	x = 0
+	k = 0
+	while x > x_min + h:
+		result.append(x)
 		x += h
 	return result
 
 
-def main():
+def legend_without_duplicate_labels(ax):
+    handles, labels = ax.get_legend_handles_labels()
+    unique = [(h, l) for i, (h, l) in enumerate(zip(handles, labels)) if l not in labels[:i]]
+    ax.legend(*zip(*unique)) 
 
+	
+def main():
+	
 	x = x_range(MAX_X, STEP)
-	print(len(x))
-	p1 = Picar(MAX_X, STEP, fp1)
-	print(len(p1))
-	p2 = Picar(MAX_X, STEP, fp2)
-	p3 = Picar(MAX_X, STEP, fp3)
-	p4 = Picar(MAX_X, STEP, fp4)
-	p5 = Picar(MAX_X, STEP, fp5)
+	print("Массив Х готов!", len(x))
+	p1 = Picar(x, STEP, fp1)
+	print("1ое приближение", len(p1))
+	p2 = Picar(x, STEP, fp2)
+	print("2ое приближение", len(p2))
+	p3 = Picar(x, STEP, fp3)
+	print("3ье приближение", len(p3))
+	p4 = Picar(x, STEP, fp4)
+	print("4ое приближение", len(p4))
+	p5 = Picar(x, STEP, fp5)
+	print("5ое приближение", len(p5))
 	ey = Euler(MAX_X, STEP)
-	eny = Euler2(MAX_X, STEP)
+	print("Эйлер (явно)", len(ey))
+	# eny = Euler2(MAX_X, STEP)
+	# print("Эйлер (неявно)", len(eny))
+	# ey_best = Euler_best(MAX_X, STEP)
+	# print("Эйлер (улучшенный)", len(ey_best))
 	runge_k = Runge2(MAX_X, STEP)
+	print("Рунге-Кутта 2 порядок", len(runge_k))
 	runge_k4 = Runge4(MAX_X, STEP)
+	print("Рунге-Кутта 4 порядок", len(runge_k4))
 
 	x_res = list()
 	p1_res = list()
@@ -187,63 +233,87 @@ def main():
 	p5_res = list()
 	ey_res = list()
 	eny_res = list()
+	ey_best_res = list()
 	runge_res = list()
 	runge_res4 = list()
 
 	i = 0
 	k = 0
-	print(len(x))
 	while i < len(x):
 		if (abs(k - x[i]) < 1e-4):
 			x_res.append(round(x[i], 2))
-			p1_res.append(p1[i])
-			p2_res.append(p2[i])
-			p3_res.append(p3[i])
-			p4_res.append(p4[i])
-			p5_res.append(p5[i])
-			ey_res.append(ey[i])
-			eny_res.append(eny[i])
-			runge_res.append(runge_k[i])
-			runge_res4.append(runge_k4[i])
+			p1_res.append(round(p1[i], 9))
+			p2_res.append(round(p2[i], 9))
+			p3_res.append(round(p3[i], 9))
+			p4_res.append(round(p4[i], 9))
+			p5_res.append(round(p5[i], 9))
+			ey_res.append(round(ey[i], 9))
+			# eny_res.append(round(eny[i], 9))
+			# ey_best_res.append(round(ey_best[i], 9))
+			runge_res.append(round(runge_k[i], 9))
+			runge_res4.append(round(runge_k4[i], 9))
 			k += 0.05
 		i += 1
 
-	tb = PrettyTable()
-	tb.add_column("X", x_res)
-	tb.add_column("Picard 1", p1_res)
-	tb.add_column("Picard 2", p2_res)
-	tb.add_column("Picard 3", p3_res)
-	tb.add_column("Picard 4", p4_res)
-	tb.add_column("Picard 5", p5_res)
-	tb.add_column("Euler (явный)", ey_res)
-	tb.add_column("Euler (неявный)", eny_res)
-	tb.add_column("Runge 2", runge_res)
-	tb.add_column("Runge 4", runge_res4)
 
-	# tb = PrettyTable()
-	# tb.add_column("X", x)
-	# tb.add_column("Picard 1", p1)
-	# tb.add_column("Picard 2", p2)
-	# tb.add_column("Picard 3", p3)
-	# tb.add_column("Picard 4", p4)
-	# tb.add_column("Picard 5", p5)
-	# tb.add_column("Euler (явный)", ey)
-	# tb.add_column("Euler (неявный)", eny)
-	# tb.add_column("Runge", runge_k)
-
+	# Полная или неполная таблица (1 -- не полная, 2 -- полная)
+	if (RES_WHAT == 1):
+		tb = PrettyTable()
+		tb.add_column("X", x_res)
+		tb.add_column("Picard 1", p1_res)
+		tb.add_column("Picard 2", p2_res)
+		tb.add_column("Picard 3", p3_res)
+		tb.add_column("Picard 4", p4_res)
+		tb.add_column("Picard 5", p5_res)
+		tb.add_column("Euler (явный)", ey_res)
+		# tb.add_column("Euler (неявный)", eny_res)
+		# tb.add_column("Euler (улучшенный)", ey_best_res)
+		tb.add_column("Runge 2", runge_res)
+		tb.add_column("Runge 4", runge_res4)
+	else:
+		tb = PrettyTable()
+		tb.add_column("X", x)
+		tb.add_column("Picard 1", p1)
+		tb.add_column("Picard 2", p2)
+		tb.add_column("Picard 3", p3)
+		tb.add_column("Picard 4", p4)
+		tb.add_column("Picard 5", p5)
+		tb.add_column("Euler (явный)", ey)
+		# tb.add_column("Euler (неявный)", eny)
+		# tb.add_column("Euler (улучшенный)", ey_best)
+		tb.add_column("Runge", runge_k)
+		tb.add_column("Runge 4", runge_k4)
 
 	print(tb)
 
-	# Запись в файл!
+
+	# Запись в файл! полные рузультаты
 	f = open("./res.txt", "w")
 	for i in range(len(x)):
-		f.write("%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\n" % (x[i], p1[i], p2[i], p3[i], p4[i], p5[i], ey[i], eny[i], runge_k[i], runge_k4[i]))
+		f.write("%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\t%.9f\n" % (x[i], p1[i], p2[i], p3[i], p4[i], p5[i], ey[i], runge_k[i], runge_k4[i]))
 
 	f.close()
 
 
 	# ГРафик 
-	plt.plot(x, runge_k)
+	name_metod = ['Picard 1', 'Picard 2', 'Picard 3', 'Picard 4', 'Euler', 'Runge']
+	fig, ax = plt.subplots()
+	x_minus = x_range_minus(MIN_X, STEP)
+	y_minus = Picar(x_minus, STEP, fp1)
+	ax.plot(x, p1, 'r', x_minus, y_minus, 'r', label=name_metod[0])
+	y_minus = Picar(x_minus, STEP, fp2)
+	ax.plot(x, p2, 'b', x_minus, y_minus, 'b', label=name_metod[1])
+	y_minus = Picar(x_minus, STEP, fp3)
+	ax.plot(x, p3, 'g', x_minus, y_minus, 'g', label=name_metod[2])
+	y_minus = Picar(x_minus, STEP, fp4)
+	ax.plot(x, p4, 'y', x_minus, y_minus, 'y', label=name_metod[3])
+	y_minus = Euler_minus(MIN_X, STEP)
+	ax.plot(x, ey, 'cyan', x_minus, y_minus, 'cyan', label=name_metod[4])
+	y_minus = Runge2_minus(MIN_X, STEP)
+	ax.plot(x, runge_k, 'purple', x_minus, y_minus, 'purple', label=name_metod[5])
+
+	plt.grid()
+	legend_without_duplicate_labels(ax)
 	plt.show()
 
 
