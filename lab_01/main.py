@@ -24,10 +24,11 @@ import matplotlib.pyplot as plt
 # При 1e-5 y(1) = 0.3502318443
 # Аналогично.
 
-MIN_X = -2
+
 MAX_X = 2
-STEP = 1e-2
-RES_WHAT = 1
+MIN_X = -MAX_X
+STEP = 1e-4
+RES_WHAT = 2
     
 def f(x, y):
 	return x * x + y * y
@@ -174,6 +175,23 @@ def Runge4(x_max, h):
 	
 	return result
 
+
+def Runge5(x_max, h):
+	result = list()
+	x, y = 0, 0
+	
+	while x < x_max +h:
+		result.append(y)
+		k0 = h * f(x, y)
+		k1 = h * f(x + h / 3, y + k0 / 3)
+		k2 = h * f(x + h / 3, y + k0 / 6 + k1 / 6)
+		k3 = h * f(x + h / 2, y + k0 / 8 + 3 * k2 / 8)
+		k4 = h * f(x + h, y + k0 / 2 - 3 * k2 / 2 + 2 * k3)
+		y = y + (k0 + 4 * k3 + k4) / 6
+		x += h
+	
+	return result
+
 def x_range(x_max, h):
 	result = list()
 	x = 0
@@ -216,14 +234,16 @@ def main():
 	print("5ое приближение", len(p5))
 	ey = Euler(MAX_X, STEP)
 	print("Эйлер (явно)", len(ey))
-	# eny = Euler2(MAX_X, STEP)
-	# print("Эйлер (неявно)", len(eny))
-	# ey_best = Euler_best(MAX_X, STEP)
-	# print("Эйлер (улучшенный)", len(ey_best))
+	eny = Euler2(MAX_X, STEP)
+	print("Эйлер (неявно)", len(eny))
+	ey_best = Euler_best(MAX_X, STEP)
+	print("Эйлер (улучшенный)", len(ey_best))
 	runge_k = Runge2(MAX_X, STEP)
 	print("Рунге-Кутта 2 порядок", len(runge_k))
 	runge_k4 = Runge4(MAX_X, STEP)
 	print("Рунге-Кутта 4 порядок", len(runge_k4))
+	runge_k5 = Runge5(MAX_X, STEP)
+	print("Рунге-Кутта 5 порядок", len(runge_k5))
 
 	x_res = list()
 	p1_res = list()
@@ -236,6 +256,7 @@ def main():
 	ey_best_res = list()
 	runge_res = list()
 	runge_res4 = list()
+	runge_res5 = list()
 
 	i = 0
 	k = 0
@@ -248,10 +269,11 @@ def main():
 			p4_res.append(round(p4[i], 9))
 			p5_res.append(round(p5[i], 9))
 			ey_res.append(round(ey[i], 9))
-			# eny_res.append(round(eny[i], 9))
-			# ey_best_res.append(round(ey_best[i], 9))
+			eny_res.append(round(eny[i], 9))
+			ey_best_res.append(round(ey_best[i], 9))
 			runge_res.append(round(runge_k[i], 9))
 			runge_res4.append(round(runge_k4[i], 9))
+			runge_res5.append(round(runge_k5[i], 9))
 			k += 0.05
 		i += 1
 
@@ -270,6 +292,7 @@ def main():
 		# tb.add_column("Euler (улучшенный)", ey_best_res)
 		tb.add_column("Runge 2", runge_res)
 		tb.add_column("Runge 4", runge_res4)
+		tb.add_column("Runge 5", runge_res5)
 	else:
 		tb = PrettyTable()
 		tb.add_column("X", x)
@@ -283,6 +306,7 @@ def main():
 		# tb.add_column("Euler (улучшенный)", ey_best)
 		tb.add_column("Runge", runge_k)
 		tb.add_column("Runge 4", runge_k4)
+		tb.add_column("Runge 5", runge_k5)
 
 	print(tb)
 
