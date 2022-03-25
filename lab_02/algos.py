@@ -10,31 +10,28 @@ import pylab
 class Function:
     def __init__(self):
         # константы не изменяемые
-        self.k_0 = 0.0008
+        self.k_0 = 8e-4
         self.m = 0.786
         self.R = 0.35
         self.T_w = 2000
-        self.T_0 = 10000
-        self.c = 3 * 10e10
-        self.p = 4
+        self.T_0 = 1e4
+        self.c = 3e10
+        self.p = 15
+        self.SHAG_RK = 1e-2
     
     def T(self, z):
-        # print("T(Z) = ", (self.T_w - self.T_0) * (z**self.p) + self.T_0)
         return (self.T_w - self.T_0) * (z**self.p) + self.T_0
 
     def k(self, z):
         return self.k_0 * ((self.T(z) / 300)**2)
 
     def u_p(self, z):
-        # print("Z = ", z)
         return (3.084e-4) / (e**((4.709e+4) / self.T(z)) - 1)
 
     def U_z(self, z, f):
         return -(3 * self.R * f * self.k(z)) / self.c
 
     def F_z(self, z, f, u):
-        # print("z == 0 ", z,  abs(z - 0) < 1e-4)
-        # print("EEEEEEEEEEEEEEEEEEE", f)
         if abs(z - 0) < 1e-4:
             return ((self.R * self.c) / 2) * self.k(z) * (self.u_p(z) - u)
         else:
@@ -52,7 +49,6 @@ class Function:
         f_res = [f0]
 
         while z_n < z_max:
-            # print("DDDDDD", u_n, f_n)
             k1 = h * self.U_z(z_n, f_n)
             g1 = h * self.F_z(z_n, f_n, u_n)
 
@@ -81,7 +77,7 @@ class Function:
 
 
 class Result(Function):
-    def dop_fi(self, f, u):
+    def dop_fi(self, f, u): # отрисовка
         res = []
         print(len(f), len(u))
         for i in range(len(u)):
@@ -89,7 +85,7 @@ class Result(Function):
 
         return res
 
-    def fi(self, f, u):
+    def fi(self, f, u): # для последнего значения
         # print("FFFFFFFFFF", f, u)
         res = []
         print(len(f), len(u))
@@ -109,7 +105,7 @@ class Result(Function):
 
         while (xi < xi_max):
             # print("xi", xi)
-            z_res, u_res, f_res = self.Runge4(0.01, 0, 0, xi * self.u_p(0), 1)
+            z_res, u_res, f_res = self.Runge4(self.SHAG_RK, 0, 0, xi * self.u_p(0), 1)
 
             fi_1 = self.fi(f_res, u_res)
             # print("fi ", fi_1)
@@ -124,8 +120,8 @@ class Result(Function):
 
         return xi_1, xi_2
 
-    def dop_f(self, xi):
-        z_res, u_res1, f_res1 = self.Runge4(0.01, 0, 0, xi * self.u_p(0), 1)
+    def dop_f(self, xi): # для знака при определении xi
+        z_res, u_res1, f_res1 = self.Runge4(self.SHAG_RK, 0, 0, xi * self.u_p(0), 1)
         f1 = self.fi(f_res1, u_res1)
         return f1
 
@@ -142,8 +138,6 @@ class Result(Function):
             #if (abs(xi_1 - xi_2) < esp):
             #   break
 
-            xi = (xi_1 + xi_2) / 2
-
             if (self.dop_f(xi_1) * self.dop_f(xi)) >= 0:
                 xi_1 = xi
             else:
@@ -157,26 +151,41 @@ class Result(Function):
 class Graph(Result):
     def draw(self):
         xi = self.polov_method()
-        print("RRRRRRRREWEREWQWERWEWEWE", xi)
+        # print("RRRRRRRREWEREWQWERWEWEWE", xi)
         z_res, u_res, f_res = self.Runge4(0.01, 0, 0, xi * self.u_p(0), 1)
         fi_res = self.dop_fi(f_res, u_res)
 
         name = ['U(z)', 'F(z)']
         # plt.style.use('ggplot')
 
-        plt.subplot(1, 3, 1)
+        t_res = []
+        up_res = []
+        for i in range(len(z_res)):
+            t_res.append(self.T(z_res[i]))
+            up_res.append(self.u_p(z_res[i]))
+            
+
+
+        plt.subplot(2, 2, 1)
         plt.plot(z_res, u_res, 'r')
+        plt.plot(z_res, up_res, 'g')
         plt.title(name[0])
         plt.grid()
 
-        plt.subplot(1, 3, 2)
+        plt.subplot(2, 2, 2)
         plt.plot(z_res, f_res, 'g')
         plt.title(name[1])
         plt.grid()
 
-        plt.subplot(1, 3, 3)
+        plt.subplot(2, 2, 3)
         plt.plot(z_res, fi_res, 'b')
-        plt.title("Result")
+        st = "XI = " + str(xi)
+        plt.title(st)
+        plt.grid()
+
+        plt.subplot(2, 2, 4)
+        plt.plot(z_res, t_res, 'g')
+        plt.title("T(z)")
         plt.grid()
         
         plt.show()
