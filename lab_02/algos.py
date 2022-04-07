@@ -4,19 +4,19 @@ from numpy import e
 import matplotlib.pyplot as plt
 import seaborn 
 import pylab
-
+from prettytable import PrettyTable
 
 
 class Function:
     def __init__(self):
         # константы не изменяемые
-        self.k_0 = 8e-4
+        self.k_0 = 0.008 # 0.018
         self.m = 0.786
         self.R = 0.35
         self.T_w = 2000
-        self.T_0 = 1e4
+        self.T_0 = 10000
         self.c = 3e10
-        self.p = 15
+        self.p = 4
         self.SHAG_RK = 1e-2
     
     def T(self, z):
@@ -26,7 +26,7 @@ class Function:
         return self.k_0 * ((self.T(z) / 300)**2)
 
     def u_p(self, z):
-        return (3.084e-4) / (e**((4.709e+4) / self.T(z)) - 1)
+        return (3.084e-4) / (e**((4.799e+4) / self.T(z)) - 1)
 
     def U_z(self, z, f):
         return -(3 * self.R * f * self.k(z)) / self.c
@@ -155,6 +155,12 @@ class Graph(Result):
         z_res, u_res, f_res = self.Runge4(0.01, 0, 0, xi * self.u_p(0), 1)
         fi_res = self.dop_fi(f_res, u_res)
 
+        tb = PrettyTable()
+        tb.add_column("Z", z_res)
+        tb.add_column("F", f_res)
+        tb.add_column("U", u_res)
+        print(tb)
+
         name = ['U(z)', 'F(z)']
         # plt.style.use('ggplot')
 
@@ -167,8 +173,9 @@ class Graph(Result):
 
 
         plt.subplot(2, 2, 1)
-        plt.plot(z_res, u_res, 'r')
-        plt.plot(z_res, up_res, 'g')
+        plt.plot(z_res, u_res, 'r', label='u')
+        plt.plot(z_res, up_res, 'g', label='u_p')
+        plt.legend()
         plt.title(name[0])
         plt.grid()
 
@@ -197,5 +204,6 @@ def main():
     
     # print(resh.find_xi())
     print(resh.draw())
+    print(resh.k(0))
 
 main()
