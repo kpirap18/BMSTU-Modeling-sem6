@@ -10,7 +10,7 @@ from prettytable import PrettyTable
 class Function:
     def __init__(self):
         # константы не изменяемые
-        self.k_0 = 0.008 # 0.018
+        self.k_0 = 0.0008 # 0.018
         self.m = 0.786
         self.R = 0.35
         self.T_w = 2000
@@ -174,7 +174,7 @@ class Graph(Result):
 
         plt.subplot(2, 2, 1)
         plt.plot(z_res, u_res, 'r', label='u')
-        plt.plot(z_res, up_res, 'g', label='u_p')
+        # plt.plot(z_res, up_res, 'g', label='u_p')
         plt.legend()
         plt.title(name[0])
         plt.grid()
