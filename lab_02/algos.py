@@ -169,7 +169,11 @@ class Graph(Result):
         for i in range(len(z_res)):
             t_res.append(self.T(z_res[i]))
             up_res.append(self.u_p(z_res[i]))
-            
+        
+        ff_res = [self.F_z(0, 0, u_res[0]) / 100] * len(z_res)
+        for i in range(1, len(u_res) - 1):
+            ff_res[i] = self.F_z(z_res[i], ff_res[i - 1], u_res[i])
+        print("\n\n\n\n", ff_res, "\n\n\n\n\n")
 
 
         plt.subplot(2, 2, 1)
@@ -180,7 +184,7 @@ class Graph(Result):
         plt.grid()
 
         plt.subplot(2, 2, 2)
-        plt.plot(z_res, f_res, 'g')
+        plt.plot(z_res, ff_res, 'g')
         plt.title(name[1])
         plt.grid()
 

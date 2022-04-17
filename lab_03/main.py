@@ -93,8 +93,8 @@ class Lab3(Function):
         # MN = -(h * self.V_n(z - h / 2, h) * self.p_n(z - h / 2)) / 8 + (z - h / 2) * self.half_kappa(z - h / 2, h) / self.R**2 / h
         # PN = -(h * self.V_n(h / 2, h) * (self.f_n(z) + self.f_n(z + h / 2))) / 4 
         KN = -((z - h / 2) * self.half_kappa(z - h / 2, h)) / (self.R**2 * h) - (h * self.V_n(z - h / 2, h) * (self.p_n(z - h) + 5 * self.p_n(z))) / 16 - z * self.m * self.c / self.R / 2
-        MN = -(h * self.V_n(z - h / 2, h) * (self.p_n(z - h) - self.p_n(z))) / 16 + ((z - h / 2) * self.half_kappa(z - h / 2, h)) / (self.R**2 * h)
-        PN = -(h * self.V_n(z - h / 2, h) * (3 * self.f_n(z) + self.f_n(z - h))) / 8 #- (h * self.V_n(h / 2, h) * self.f_n(z) ) / 4
+        MN = -(h * self.V_n(z - h / 2, h) * (self.p_n(z - h) + self.p_n(z))) / 16 + ((z - h / 2) * self.half_kappa(z - h / 2, h)) / (self.R**2 * h)
+        PN = -(h * self.V_n(z - h / 2, h) * (3 * self.f_n(z) + self.f_n(z - h))) / 8 
         return KN, MN, PN
 
     def str_hod(self):
