@@ -17,7 +17,7 @@ class Function:
         self.T_0 = 10000
         self.c = 3e10
         self.p = 4
-        self.SHAG_RK = 1e-2
+        self.SHAG_RK = 1e-4
     
     def T(self, z):
         return (self.T_w - self.T_0) * (z**self.p) + self.T_0
@@ -36,6 +36,9 @@ class Function:
             return ((self.R * self.c) / 2) * self.k(z) * (self.u_p(z) - u)
         else:
             return self.R * self.c * self.k(z) * (self.u_p(z) - u) - (f / z)
+
+    def divF(self, z, u):
+        return self.c * self.k(z) * (self.u_p(z) - u)
 
     def Runge4(self, h0, z0, f0, u0, z_max):
         z_n = z0
@@ -148,6 +151,19 @@ class Result(Function):
 
         return xi
 
+    def Euler(self, z_max, h, u_res):
+        result = list()
+        x, f = 0, 0 	# Начальное условие.
+        
+        k = 0
+        while x < z_max + h:
+            result.append(f)
+            f = f + h * self.F_z(x, f, u_res[k])
+            x += h
+            k += 1
+
+        return result
+
 class Graph(Result):
     def draw(self):
         xi = self.polov_method()
@@ -166,30 +182,33 @@ class Graph(Result):
 
         t_res = []
         up_res = []
+        divF = [0] * len(z_res)
+        f3_res = self.Euler(1, self.SHAG_RK, u_res)
         for i in range(len(z_res)):
             t_res.append(self.T(z_res[i]))
             up_res.append(self.u_p(z_res[i]))
+            divF[i] = self.divF(z_res[i], u_res[i])
         
-        ff_res = [self.F_z(0, 0, u_res[0]) / 100] * len(z_res)
-        for i in range(1, len(u_res) - 1):
-            ff_res[i] = self.F_z(z_res[i], ff_res[i - 1], u_res[i])
-        print("\n\n\n\n", ff_res, "\n\n\n\n\n")
+        # ff_res = [self.F_z(0, 0, u_res[0]) / 100] * len(z_res)
+        # for i in range(1, len(u_res) - 1):
+        #     ff_res[i] = self.F_z(z_res[i], ff_res[i - 1], u_res[i])
+        # print("\n\n\n\n", ff_res, "\n\n\n\n\n")
 
 
         plt.subplot(2, 2, 1)
         plt.plot(z_res, u_res, 'r', label='u')
-        # plt.plot(z_res, up_res, 'g', label='u_p')
+        plt.plot(z_res, up_res, 'g', label='u_p')
         plt.legend()
         plt.title(name[0])
         plt.grid()
 
         plt.subplot(2, 2, 2)
-        plt.plot(z_res, ff_res, 'g')
+        plt.plot(z_res, f3_res, 'g')
         plt.title(name[1])
         plt.grid()
 
         plt.subplot(2, 2, 3)
-        plt.plot(z_res, fi_res, 'b')
+        plt.plot(z_res, divF, 'b')
         st = "XI = " + str(xi)
         plt.title(st)
         plt.grid()
